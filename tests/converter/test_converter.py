@@ -7,24 +7,33 @@ from api.v1.converter.services import ConverterService
 def test_get_raw_data_valid(api):
     url = '/api/v1/converter/raw-data/'
     valid_data = {
-        'monday': [{'type': 'open', 'value': 36000}, {'type': 'close', 'value': 64800}],
-        'tuesday': [],
+        'monday': [],
+        'tuesday': [{'type': 'open', 'value': 36000}, {'type': 'close', 'value': 64800}],
         'wednesday': [],
-        'thursday': [{'type': 'open', 'value': 36000}, {'type': 'close', 'value': 64800}],
-        'friday': [],
-        'saturday': [{'type': 'open', 'value': 36000}, {'type': 'close', 'value': 64800}],
-        'sunday': [{'type': 'open', 'value': 36000}, {'type': 'close', 'value': 64800}],
+        'thursday': [
+            {'type': 'open', 'value': 36000},
+            {'type': 'close', 'value': 39600},
+            {'type': 'open', 'value': 43200},
+            {'type': 'close', 'value': 46800},
+        ],
+        'friday': [{'type': 'open', 'value': 36000}],
+        'saturday': [{'type': 'close', 'value': 3600}, {'type': 'open', 'value': 36000}],
+        'sunday': [
+            {'type': 'close', 'value': 3600},
+            {'type': 'open', 'value': 43200},
+            {'type': 'close', 'value': 75600},
+        ],
     }
 
     response = api.post(url, data=valid_data)
     assert {
-        'Monday': '10:00 AM - 06:00 PM',
-        'Tuesday': 'Closed',
+        'Tuesday': '10:00 AM - 10:00 AM',
+        'Thursday': '10:00 AM - 10:00 AM, 12:00 PM - 12:00 PM',
+        'Friday': '10:00 AM - 10:00 AM',
+        'Saturday': '10:00 AM - 10:00 AM',
+        'Sunday': '12:00 PM - 12:00 PM',
+        'Monday': 'Closed',
         'Wednesday': 'Closed',
-        'Thursday': '10:00 AM - 06:00 PM',
-        'Friday': 'Closed',
-        'Saturday': '10:00 AM - 06:00 PM',
-        'Sunday': '10:00 AM - 06:00 PM',
     } == response
 
 
@@ -48,13 +57,22 @@ class TestConverterService:
     @pytest.fixture
     def sample_data(self):
         return {
-            'monday': [{'type': 'open', 'value': 36000}, {'type': 'close', 'value': 64800}],
-            'tuesday': [],
+            'monday': [],
+            'tuesday': [{'type': 'open', 'value': 36000}, {'type': 'close', 'value': 64800}],
             'wednesday': [],
-            'thursday': [{'type': 'open', 'value': 36000}, {'type': 'close', 'value': 64800}],
-            'friday': [],
-            'saturday': [{'type': 'open', 'value': 36000}, {'type': 'close', 'value': 64800}],
-            'sunday': [{'type': 'open', 'value': 36000}, {'type': 'close', 'value': 64800}],
+            'thursday': [
+                {'type': 'open', 'value': 36000},
+                {'type': 'close', 'value': 39600},
+                {'type': 'open', 'value': 43200},
+                {'type': 'close', 'value': 46800},
+            ],
+            'friday': [{'type': 'open', 'value': 36000}],
+            'saturday': [{'type': 'close', 'value': 3600}, {'type': 'open', 'value': 36000}],
+            'sunday': [
+                {'type': 'close', 'value': 3600},
+                {'type': 'open', 'value': 43200},
+                {'type': 'close', 'value': 75600},
+            ],
         }
 
     def test_init(self, sample_data):
@@ -81,13 +99,13 @@ class TestConverterService:
         service = ConverterService(sample_data)
         result = service.humanize_data()
         expected_result = {
-            'Monday': '10:00 AM - 06:00 PM',
-            'Tuesday': 'Closed',
+            'Tuesday': '10:00 AM - 10:00 AM',
+            'Thursday': '10:00 AM - 10:00 AM, 12:00 PM - 12:00 PM',
+            'Friday': '10:00 AM - 10:00 AM',
+            'Saturday': '10:00 AM - 10:00 AM',
+            'Sunday': '12:00 PM - 12:00 PM',
+            'Monday': 'Closed',
             'Wednesday': 'Closed',
-            'Thursday': '10:00 AM - 06:00 PM',
-            'Friday': 'Closed',
-            'Saturday': '10:00 AM - 06:00 PM',
-            'Sunday': '10:00 AM - 06:00 PM',
         }
         assert result == expected_result
 

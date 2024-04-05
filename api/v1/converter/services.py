@@ -34,13 +34,46 @@ class ConverterService:
     def _get_formatted_time(self, seconds: int) -> str:
         return time.strftime('%I:%M %p', time.gmtime(seconds))
 
-    def _reformat_data(self, data: dict) -> dict[str:list]:
+    def _reformat_data(self, old_data: dict) -> dict[str:list]:
         result = {}
-        for day, timings in data.items():
-            if not timings:
-                result[day.capitalize()] = 'Closed'
-            else:
-                open_time = self._get_formatted_time(timings[0]['value'])
-                close_time = self._get_formatted_time(timings[-1]['value'])
-                result[day.capitalize()] = f'{open_time} - {close_time}'
-        return result
+        data = []
+        closed_days = []
+        for key, value in old_data.items():
+            for timeslot in value:
+                data.append({**timeslot, 'day': key})
+
+            if not value:
+                closed_days.append(key)
+
+        for timeslot in data:
+            if timeslot['day'] not in result:
+                if timeslot['type'] == 'close':
+                    prev_day = self._prev_weekday(timeslot['day'])
+                    result[prev_day].append(timeslot)
+                    result[timeslot['day']] = []
+                else:
+                    result[timeslot['day']] = [timeslot]
+                continue
+
+            result[timeslot['day']].append(timeslot)
+
+        formatted_result = {}
+        for day, timeslots in result.items():
+            day: str
+            formatted_time = []
+            for index in range(0, len(timeslots), 2):
+                open_time = self._get_formatted_time(timeslots[index]['value'])
+                close_time = self._get_formatted_time(timeslots[index]['value'])
+                formatted_time.append(f'{open_time} - {close_time}')
+            formatted_result[day.capitalize()] = ', '.join(formatted_time)
+
+        for closed_day in closed_days:
+            formatted_result[closed_day.capitalize()] = 'Closed'
+        return formatted_result
+
+    def _prev_weekday(self, day_name):
+        day_name = day_name.lower()
+        weekdays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+        current_day_index = weekdays.index(day_name)
+        next_index = (current_day_index - 1) % 7
+        return weekdays[next_index]
