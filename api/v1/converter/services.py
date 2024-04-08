@@ -196,7 +196,7 @@ class ConverterService:
             formatted_time = []
             for index in range(0, len(timeslots), 2):
                 open_time = self._get_formatted_time(timeslots[index].value)
-                close_time = self._get_formatted_time(timeslots[index].value)
+                close_time = self._get_formatted_time(timeslots[index + 1].value)
                 formatted_time.append(f'{open_time} - {close_time}')
             formatted_result[day.capitalize()] = ', '.join(formatted_time)
 
